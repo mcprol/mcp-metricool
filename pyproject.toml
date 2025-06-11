@@ -8,12 +8,30 @@ authors = [
     { name = "David Gonzalez", email = "davidgonzalez@metricool.com" },
     { name = "Vicent Martí", email = "vicentmarti@metricool.com" }
 ]
+
 requires-python = ">=3.12"
+
+
 dependencies = [
-    "build>=1.2.2.post1",
+    # Core MCP dependencies
+    "mcp>=1.0.0,<2.0.0",
+    
+    # HTTP Server dependencies
+    "fastapi>=0.104.1,<0.110.0",
+    "uvicorn[standard]>=0.24.0,<0.25.0",
+    
+    # HTTP Client dependencies
+    "aiohttp>=3.9.0,<4.0.0",
     "httpx>=0.28.1",
-    "mcp[cli]>=1.6.0",
-    "twine>=6.1.0",
+    
+    # Data validation and parsing
+    "pydantic>=2.5.0,<3.0.0",
+    
+    # HTTP requests (if needed for Metricool API)
+    "requests>=2.31.0,<3.0.0",
+    
+    # Async utilities
+    # "asyncio-mqtt>=0.16.0,<0.17.0",  # Solo si necesitas MQTT
 ]
 
 [project.scripts]
@@ -22,3 +40,7 @@ mcp-metricool = "mcp_metricool:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+
+
+

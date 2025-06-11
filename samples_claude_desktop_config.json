@@ -1,0 +1,61 @@
+
+# configuration for uv package manager
+{
+  "mcpServers": {
+    "metricool
+    ": {
+      "command": "/Users/mcprol/.local/bin/uvx",
+      "args": [
+        "mcp-metricool"
+      ],
+      "env": {
+        "METRICOOL_USER_TOKEN": "VDGVECPTRGOYJBGIRNCNTKCAWMYMBHHZIGZGGUNVWQAVANLUTFAXPUFIQTBICKXW",
+        "METRICOOL_USER_ID": "1038075"
+      }
+    }
+  }
+}
+
+# configuration for mcp server local stdio
+{
+    "mcpServers": {
+        "metricool": {
+            "command": "/Users/mcprol/_dev/mcp-metricool.github/run_mcp_as_local.sh",
+            "env": {
+              "METRICOOL_USER_TOKEN": "VDGVECPTRGOYJBGIRNCNTKCAWMYMBHHZIGZGGUNVWQAVANLUTFAXPUFIQTBICKXW",
+              "METRICOOL_USER_ID": "1038075"
+     
+            }
+        }
+    }
+}
+
+
+
+# configuration for mcp sse server (it is not supported by claude desktop)
+{
+    "mcpServers": {
+        "metricool": {
+            "url": "http://localhost:8000/sse",
+            "env": {
+                "METRICOOL_USER_TOKEN": "",
+                "METRICOOL_USER_ID": ""
+            }
+        }
+    }
+}
+
+
+  # configuration for mcp sse server with a python proxy (workaround to use from claude desktop)
+
+{
+  "mcpServers": {
+    "metricool": {
+      "command": "/Users/mcprol/_dev/metricool-mcp/run_mcp_as_proxy.sh",
+      "env": {
+        "MCP_SERVER_URL": "http://localhost:8000",
+        "METRICOOL_USER_TOKEN": ""
+      }
+    }
+  }
+}

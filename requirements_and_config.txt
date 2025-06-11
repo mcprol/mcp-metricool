@@ -1,0 +1,181 @@
+# requirements.txt
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+mcp>=1.0.0
+sse-starlette>=1.6.5
+pydantic>=2.0.0
+httpx>=0.25.0
+
+# requirements-dev.txt (opcional, para desarrollo)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.5.0
+
+---
+
+# docker-compose.yml (opcional)
+version: '3.8'
+
+services:
+  mcp-sse-server:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python sse_server.py --host 0.0.0.0 --port 8080
+
+---
+
+# Dockerfile (opcional)
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 8080
+
+CMD ["python", "sse_server.py", "--host", "0.0.0.0", "--port", "8080"]
+
+---
+
+# Ejemplo de uso del cliente
+# client_example.py
+
+import asyncio
+import json
+from mcp import ClientSession
+from mcp.client.sse import SseClientTransport
+
+async def main():
+    # Crear el transporte SSE
+    transport = SseClientTransport("http://localhost:8080/sse")
+    
+    async with ClientSession(transport) as session:
+        # Inicializar la sesión
+        await session.initialize()
+        
+        # Listar herramientas disponibles
+        tools = await session.list_tools()
+        print("Herramientas disponibles:")
+        for tool in tools.tools:
+            print(f"- {tool.name}: {tool.description}")
+        
+        # Ejemplo de llamada a una herramienta
+        # (ajusta según las herramientas en tu tools.py)
+        if tools.tools:
+            tool_name = tools.tools[0].name
+            result = await session.call_tool(tool_name, {})
+            print(f"\nResultado de {tool_name}:")
+            for content in result.content:
+                if hasattr(content, 'text'):
+                    print(content.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+---
+
+# Adaptador para tools.py existente (si tu estructura es diferente)
+# tools_adapter.py
+
+"""
+Adaptador para convertir tu tools.py existente al formato esperado por el servidor SSE
+"""
+
+import inspect
+import json
+from typing import Any, Dict, List, Callable
+from functools import wraps
+
+# Registro de herramientas
+_registered_tools: Dict[str, Dict[str, Any]] = {}
+
+def tool(name: str = None, description: str = None, input_schema: Dict = None):
+    """Decorador para registrar herramientas"""
+    def decorator(func: Callable):
+        tool_name = name or func.__name__
+        tool_description = description or func.__doc__ or f"Tool: {tool_name}"
+        
+        # Generar schema automáticamente si no se proporciona
+        if input_schema is None:
+            sig = inspect.signature(func)
+            schema = {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+            
+            for param_name, param in sig.parameters.items():
+                if param_name != 'self':
+                    schema["properties"][param_name] = {
+                        "type": "string",
+                        "description": f"Parameter {param_name}"
+                    }
+                    if param.default == inspect.Parameter.empty:
+                        schema["required"].append(param_name)
+            
+            input_schema = schema
+        
+        # Registrar la herramienta
+        _registered_tools[tool_name] = {
+            "name": tool_name,
+            "description": tool_description,
+            "inputSchema": input_schema,
+            "function": func
+        }
+        
+        # Marcar la función como herramienta MCP
+        func._is_mcp_tool = True
+        func._mcp_name = tool_name
+        
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
+        
+        return wrapper
+    
+    return decorator
+
+def get_tools() -> List[Dict[str, Any]]:
+    """Devuelve la lista de herramientas registradas"""
+    return list(_registered_tools.values())
+
+async def call_tool(name: str, arguments: Dict[str, Any]) -> Any:
+    """Ejecuta una herramienta por nombre"""
+    if name not in _registered_tools:
+        raise ValueError(f"Tool {name} not found")
+    
+    tool_info = _registered_tools[name]
+    func = tool_info["function"]
+    
+    try:
+        if inspect.iscoroutinefunction(func):
+            return await func(**arguments)
+        else:
+            return func(**arguments)
+    except Exception as e:
+        raise Exception(f"Error executing tool {name}: {str(e)}")
+
+# Ejemplo de uso del adaptador:
+# En tu tools.py, puedes usar:
+
+# from tools_adapter import tool
+# 
+# @tool(name="get_metricool_data", description="Obtiene datos de Metricool")
+# async def get_metricool_data(account_id: str, metric: str):
+#     # Tu lógica existente aquí
+#     return {"account_id": account_id, "metric": metric, "data": "..."}

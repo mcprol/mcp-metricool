@@ -1,0 +1,53 @@
+1. Preparar el entorno
+Primero, clona el repositorio y crea un entorno virtual:
+bash# Clonar el repositorio
+git clone https://github.com/metricool/mcp-metricool.git
+cd mcp-metricool
+
+# Crear entorno virtual
+python3 -m venv venv
+
+# Activar el entorno virtual
+# En Windows:
+venv\Scripts\activate
+# En macOS/Linux:
+source venv/bin/activate
+2. Instalar dependencias
+El proyecto usa pyproject.toml, así que puedes instalar las dependencias con pip:
+bash# Instalar el paquete en modo desarrollo
+pip install -e .
+
+# O si prefieres instalar las dependencias manualmente:
+pip install mcp anthropic-mcp-sdk
+3. Configurar Claude Desktop
+Necesitas modificar el archivo de configuración de Claude Desktop. La ubicación depende de tu sistema operativo:
+
+macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+Windows: %APPDATA%\Claude\claude_desktop_config.json
+
+Alternativa usando un script wrapper
+Si tienes problemas con las rutas, puedes crear un script wrapper:
+Para Windows (run_metricool.bat):
+batch@echo off
+cd /d "C:\ruta\a\mcp-metricool"
+call venv\Scripts\activate
+python src/mcp_metricool/server.py
+Para macOS/Linux (run_metricool.sh):
+bash#!/bin/bash
+cd "/ruta/a/mcp-metricool"
+source venv/bin/activate
+python src/mcp_metricool/server.py
+Y luego usar el script en la configuración de Claude Desktop:
+json{
+  "mcpServers": {
+    "metricool": {
+      "command": "/ruta/a/run_metricool.sh",
+      "env": {
+        "METRICOOL_API_KEY": "tu_api_key_aqui"
+      }
+    }
+  }
+}
+
+
+--------------
