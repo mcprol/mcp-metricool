@@ -4,8 +4,8 @@ set -ex
 # Script para iniciar el MCP Metricool SSE Server
 
 
-export METRICOOL_API_KEY=""
-export METRICOOL_USER_ID=""
+export METRICOOL_USER_TOKEN="VDGVECPTRGOYJBGIRNCNTKCAWMYMBHHZIGZGGUNVWQAVANLUTFAXPUFIQTBICKXW"
+export METRICOOL_USER_ID="1038075"
 
 # Colores para output
 GREEN='\033[0;32m'
@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}🚀 Iniciando MCP Metricool SSE Server${NC}"
 
 # Verificar que existe el API key
-if [ -z "$METRICOOL_API_KEY" ]; then
+if [ -z "$METRICOOL_USER_TOKEN" ]; then
     echo -e "${RED}❌ Error: METRICOOL_API_KEY no está configurada${NC}"
     echo "Configura tu API key con:"
     echo "export METRICOOL_API_KEY='tu_api_key_aqui'"
@@ -30,7 +30,7 @@ PORT=${PORT:-"8000"}
 echo -e "${YELLOW}📡 Configuración del servidor:${NC}"
 echo "  Host: $HOST"
 echo "  Port: $PORT"
-echo "  API Key: ${METRICOOL_API_KEY:0:10}..."
+echo "  API Key: ${METRICOOL_USER_TOKEN:0:10}..."
 
 # Crear entorno virtual si no existe
 if [ ! -d "venv" ]; then
@@ -55,4 +55,4 @@ echo ""
 echo -e "${YELLOW}Para detener el servidor, presiona Ctrl+C${NC}"
 echo ""
 
-python src/mcp_metricool/server_sse.py
+python3 src/mcp_metricool/mcp_sse_server.py

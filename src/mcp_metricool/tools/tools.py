@@ -3,6 +3,8 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+
+
 from mcp_metricool.utils.utils import make_get_request
 from mcp_metricool.utils.utils import make_post_request
 from mcp_metricool.utils.utils import make_put_request
@@ -12,6 +14,7 @@ from mcp_metricool.config import METRICOOL_USER_ID
 
 # Initialize FastMCP server
 mcp = FastMCP("metricool")
+
 
 @mcp.tool()
 async def get_brands(state: str) -> str | dict[str, Any]:
